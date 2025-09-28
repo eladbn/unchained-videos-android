@@ -13,3 +13,5 @@ import javax.inject.Qualifier
 @Qualifier @Retention(AnnotationRetention.BINARY) annotation class ClassicClient
 
 @Qualifier @Retention(AnnotationRetention.BINARY) annotation class DOHClient
+
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class TmdbRetrofit

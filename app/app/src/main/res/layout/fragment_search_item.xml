@@ -56,7 +56,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
-            app:layout_constraintBottom_toTopOf="@id/linkList"
+            app:layout_constraintBottom_toTopOf="@id/tmdbInfoLayout"
             app:layout_constraintEnd_toEndOf="@id/linkCaption"
             app:layout_constraintStart_toStartOf="@id/tvName"
             app:layout_constraintTop_toBottomOf="@id/tvName">
@@ -132,6 +132,28 @@
                 app:layout_constraintTop_toBottomOf="@id/leechers" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <include
+            android:id="@+id/tmdbInfoLayout"
+            layout="@layout/item_tmdb_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/linkCaption"
+            app:layout_constraintStart_toStartOf="@id/tvName"
+            app:layout_constraintTop_toBottomOf="@id/infoLayout"
+            app:layout_constraintBottom_toTopOf="@id/linkList" />
+
+        <ProgressBar
+            android:id="@+id/tmdbProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/infoLayout" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/linkList"

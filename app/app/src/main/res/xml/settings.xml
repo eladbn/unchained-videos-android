@@ -113,6 +113,16 @@
             app:summary="@string/delete_plugins_summary"
             app:title="@string/delete_plugins" />
 
+        <EditTextPreference
+            android:defaultValue=""
+            android:inputType="text"
+            app:key="tmdb_api_key"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            app:summary="@string/tmdb_api_key_summary"
+            app:title="@string/tmdb_api_key"
+            app:useSimpleSummaryProvider="false" />
+
         <SwitchPreference
             android:defaultValue="false"
             app:key="use_doh_key"

@@ -33,6 +33,9 @@ import com.github.livingwithhippos.unchained.data.remote.UserApiHelperImpl
 import com.github.livingwithhippos.unchained.data.remote.VariousApi
 import com.github.livingwithhippos.unchained.data.remote.VariousApiHelper
 import com.github.livingwithhippos.unchained.data.remote.VariousApiHelperImpl
+import com.github.livingwithhippos.unchained.data.remote.TmdbApi
+import com.github.livingwithhippos.unchained.data.remote.TmdbApiHelper
+import com.github.livingwithhippos.unchained.data.remote.TmdbApiHelperImpl
 import com.github.livingwithhippos.unchained.plugins.Parser
 import com.github.livingwithhippos.unchained.utilities.BASE_AUTH_URL
 import com.github.livingwithhippos.unchained.utilities.BASE_URL
@@ -183,6 +186,17 @@ object ApiFactory {
             .build()
     }
 
+    @Provides
+    @Singleton
+    @TmdbRetrofit
+    fun tmdbRetrofit(@ClassicClient okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl("https://api.themoviedb.org/3/")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+    }
+
     // authentication api injection
     @Provides
     @Singleton
@@ -294,6 +308,17 @@ object ApiFactory {
     @Singleton
     fun provideCustomDownloadHelper(customHelper: CustomDownloadHelperImpl): CustomDownloadHelper =
         customHelper
+
+    // tmdb api injection
+    @Provides
+    @Singleton
+    fun provideTmdbApi(@TmdbRetrofit retrofit: Retrofit): TmdbApi {
+        return retrofit.create(TmdbApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTmdbApiHelper(apiHelper: TmdbApiHelperImpl): TmdbApiHelper = apiHelper
 
     /** Search Plugins stuff */
     @Provides
