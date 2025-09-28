@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import com.github.livingwithhippos.unchained.R
 import com.github.livingwithhippos.unchained.base.UnchainedFragment
 import com.github.livingwithhippos.unchained.databinding.FragmentSearchItemBinding
@@ -94,7 +95,7 @@ class SearchItemFragment : UnchainedFragment(), LinkItemListener {
     }
 
     private fun updateLinkListConstraints(binding: FragmentSearchItemBinding) {
-        val constraintSet = ConstraintLayout.ConstraintSet()
+        val constraintSet = ConstraintSet()
         constraintSet.clone(binding.rootLayout)
         
         val topAnchor = when {
@@ -103,7 +104,7 @@ class SearchItemFragment : UnchainedFragment(), LinkItemListener {
             else -> R.id.infoLayout
         }
         
-        constraintSet.connect(R.id.linkList, ConstraintLayout.ConstraintSet.TOP, topAnchor, ConstraintLayout.ConstraintSet.BOTTOM, 10)
+        constraintSet.connect(R.id.linkList, ConstraintSet.TOP, topAnchor, ConstraintSet.BOTTOM, 10)
         constraintSet.applyTo(binding.rootLayout)
     }
 

@@ -1,19 +1,19 @@
 package com.github.livingwithhippos.unchained.data.repository
 
 import android.content.SharedPreferences
-import com.github.livingwithhippos.unchained.data.model.NetworkResponse
+import com.github.livingwithhippos.unchained.data.local.ProtoStore
 import com.github.livingwithhippos.unchained.data.model.ParsedTorrentInfo
 import com.github.livingwithhippos.unchained.data.model.TmdbInfo
 import com.github.livingwithhippos.unchained.data.model.TmdbSearchResult
 import com.github.livingwithhippos.unchained.data.remote.TmdbApiHelper
 import timber.log.Timber
-import java.util.Calendar
 import javax.inject.Inject
 
 class TmdbRepository @Inject constructor(
+    protoStore: ProtoStore,
     private val tmdbApiHelper: TmdbApiHelper,
     private val preferences: SharedPreferences
-) {
+) : BaseRepository(protoStore) {
     
     private fun getTmdbApiKey(): String? {
         return preferences.getString("tmdb_api_key", null)?.takeIf { it.isNotBlank() }
@@ -27,29 +27,27 @@ class TmdbRepository @Inject constructor(
             Timber.d("Parsed torrent info: $parsedInfo")
             
             val searchResponse = if (parsedInfo.isMovie) {
-                tmdbApiHelper.searchMovies(apiKey, parsedInfo.title, parsedInfo.year)
+                safeApiCall(
+                    call = { tmdbApiHelper.searchMovies(apiKey, parsedInfo.title, parsedInfo.year) },
+                    errorMessage = "Error searching movies on TMDB"
+                )
             } else {
-                tmdbApiHelper.searchTv(apiKey, parsedInfo.title, parsedInfo.year)
+                safeApiCall(
+                    call = { tmdbApiHelper.searchTv(apiKey, parsedInfo.title, parsedInfo.year) },
+                    errorMessage = "Error searching TV shows on TMDB"
+                )
             }
             
-            return when (searchResponse) {
-                is NetworkResponse.Success -> {
-                    val results = searchResponse.body.results
-                    if (!results.isNullOrEmpty()) {
-                        convertToTmdbInfo(results.first(), parsedInfo.isMovie)
-                    } else {
-                        // Try multi search as fallback
-                        searchMulti(apiKey, parsedInfo.title)
-                    }
+            return if (searchResponse != null) {
+                val results = searchResponse.results
+                if (!results.isNullOrEmpty()) {
+                    convertToTmdbInfo(results.first(), parsedInfo.isMovie)
+                } else {
+                    // Try multi search as fallback
+                    searchMulti(apiKey, parsedInfo.title)
                 }
-                is NetworkResponse.Error -> {
-                    Timber.e("TMDB API error: ${searchResponse.message}")
-                    null
-                }
-                is NetworkResponse.GenericError -> {
-                    Timber.e("TMDB generic error: ${searchResponse.error}")
-                    null
-                }
+            } else {
+                null
             }
         } catch (e: Exception) {
             Timber.e(e, "Error searching TMDB")
@@ -59,17 +57,20 @@ class TmdbRepository @Inject constructor(
     
     private suspend fun searchMulti(apiKey: String, query: String): TmdbInfo? {
         return try {
-            val searchResponse = tmdbApiHelper.searchMulti(apiKey, query)
-            when (searchResponse) {
-                is NetworkResponse.Success -> {
-                    val results = searchResponse.body.results
-                    if (!results.isNullOrEmpty()) {
-                        val firstResult = results.first()
-                        val isMovie = firstResult.mediaType == "movie" || firstResult.title != null
-                        convertToTmdbInfo(firstResult, isMovie)
-                    } else null
-                }
-                else -> null
+            val searchResponse = safeApiCall(
+                call = { tmdbApiHelper.searchMulti(apiKey, query) },
+                errorMessage = "Error in multi search on TMDB"
+            )
+            
+            if (searchResponse != null) {
+                val results = searchResponse.results
+                if (!results.isNullOrEmpty()) {
+                    val firstResult = results.first()
+                    val isMovie = firstResult.mediaType == "movie" || firstResult.title != null
+                    convertToTmdbInfo(firstResult, isMovie)
+                } else null
+            } else {
+                null
             }
         } catch (e: Exception) {
             Timber.e(e, "Error in multi search")
@@ -108,19 +109,19 @@ class TmdbRepository @Inject constructor(
     }
     
     fun parseTorrentName(name: String): ParsedTorrentInfo {
-        val cleanName = name.replace(".", " ")
-            .replace("_", " ")
-            .replace("-", " ")
-            .trim()
+        Timber.d("Original name: $name")
         
-        // Extract year (4 digits)
+        // Remove file extensions
+        var workingName = name.replace(Regex("\\.(mkv|mp4|avi|mov|wmv|flv|webm|m4v|3gp|mpg|mpeg)$", RegexOption.IGNORE_CASE), "")
+        
+        // Extract year (4 digits between 1900-2099)
         val yearRegex = Regex("\\b(19|20)\\d{2}\\b")
-        val yearMatch = yearRegex.find(cleanName)
+        val yearMatch = yearRegex.find(workingName)
         val year = yearMatch?.value?.toIntOrNull()
         
-        // Extract season and episode (S##E## or S##EP## formats)
-        val seasonEpisodeRegex = Regex("S(\\d{1,2})E(?:P)?(\\d{1,2})", RegexOption.IGNORE_CASE)
-        val seasonEpisodeMatch = seasonEpisodeRegex.find(cleanName)
+        // Extract season and episode (S##E## format)
+        val seasonEpisodeRegex = Regex("S(\\d{1,2})E(\\d{1,2})", RegexOption.IGNORE_CASE)
+        val seasonEpisodeMatch = seasonEpisodeRegex.find(workingName)
         
         var season: Int? = null
         var episode: Int? = null
@@ -128,38 +129,57 @@ class TmdbRepository @Inject constructor(
         if (seasonEpisodeMatch != null) {
             season = seasonEpisodeMatch.groupValues[1].toIntOrNull()
             episode = seasonEpisodeMatch.groupValues[2].toIntOrNull()
+        }
+        
+        // Now extract the title - simple approach
+        var title = workingName
+        
+        // If there's a year in parentheses like "Movie Title (2019)", extract title before it
+        val titleWithYearInParensRegex = Regex("^(.+?)\\s*\\((19|20)\\d{2}\\)", RegexOption.IGNORE_CASE)
+        val titleWithYearMatch = titleWithYearInParensRegex.find(title)
+        
+        if (titleWithYearMatch != null) {
+            // Title is before the year in parentheses
+            title = titleWithYearMatch.groupValues[1].trim()
         } else {
-            // Try alternative formats like "Season 1" or "S1"
-            val seasonRegex = Regex("(?:Season\\s*|S)(\\d{1,2})", RegexOption.IGNORE_CASE)
-            val seasonMatch = seasonRegex.find(cleanName)
-            season = seasonMatch?.groupValues?.get(1)?.toIntOrNull()
+            // Try to find where the title ends by looking for year or technical terms
+            // Split by year if found
+            if (yearMatch != null) {
+                val yearIndex = title.indexOf(yearMatch.value)
+                if (yearIndex > 0) {
+                    title = title.substring(0, yearIndex).trim()
+                }
+            }
+            
+            // Remove season/episode info from title
+            if (seasonEpisodeMatch != null) {
+                title = title.replace(seasonEpisodeMatch.value, "", ignoreCase = true).trim()
+            }
+            
+            // Look for common technical terms that indicate end of title
+            val technicalTermsRegex = Regex("\\b(?:1080p|720p|480p|4K|BluRay|WEBRip|x264|x265|HEVC)\\b", RegexOption.IGNORE_CASE)
+            val techMatch = technicalTermsRegex.find(title)
+            if (techMatch != null) {
+                val techIndex = title.indexOf(techMatch.value)
+                if (techIndex > 0) {
+                    title = title.substring(0, techIndex).trim()
+                }
+            }
         }
         
-        // Clean title (remove year, season/episode info, quality indicators, etc.)
-        var title = cleanName
+        // Clean up the title
+        title = title
+            .replace(".", " ")           // Dots to spaces
+            .replace("_", " ")           // Underscores to spaces  
+            .replace(Regex("\\s+"), " ") // Multiple spaces to single
+            .trim()
         
-        // Remove year
-        if (yearMatch != null) {
-            title = title.replace(yearMatch.value, "").trim()
-        }
-        
-        // Remove season/episode info
-        if (seasonEpisodeMatch != null) {
-            title = title.replace(seasonEpisodeMatch.value, "").trim()
-        }
-        
-        // Remove common quality/format indicators
-        val qualityRegex = Regex("\\b(?:1080p|720p|480p|4K|HD|BluRay|BRRip|DVDRip|WEBRip|HDTV|x264|x265|HEVC|AC3|DTS|MULTI|DUBBED|SUBBED|UNCUT|EXTENDED|DIRECTORS?|CUT|REPACK|PROPER|REAL|INTERNAL|LIMITED|FESTIVAL|SCREENER|CAM|TS|TC|R5|DVDScr)\\b", RegexOption.IGNORE_CASE)
-        title = qualityRegex.replace(title, "").trim()
-        
-        // Remove common release group indicators (usually at the end in brackets or after dash)
-        val releaseGroupRegex = Regex("[-\\[].*$")
-        title = releaseGroupRegex.replace(title, "").trim()
-        
-        // Remove extra spaces
-        title = title.replace(Regex("\\s+"), " ").trim()
+        // Remove common brackets/parentheses content at the end
+        title = title.replace(Regex("\\s*[\\[\\(][^\\]\\)]*[\\]\\)]\\s*$"), "").trim()
         
         val isMovie = season == null && episode == null
+        
+        Timber.d("Parsed result - Title: '$title', Year: $year, Season: $season, Episode: $episode, IsMovie: $isMovie")
         
         return ParsedTorrentInfo(
             title = title,

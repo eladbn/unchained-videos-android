@@ -1,21 +1,19 @@
 package com.github.livingwithhippos.unchained.data.remote
 
-import com.github.livingwithhippos.unchained.data.model.NetworkResponse
 import com.github.livingwithhippos.unchained.data.model.TmdbMovieDetails
 import com.github.livingwithhippos.unchained.data.model.TmdbSearchResponse
 import com.github.livingwithhippos.unchained.data.model.TmdbTvDetails
-import com.github.livingwithhippos.unchained.data.repository.BaseRepository
 import javax.inject.Inject
+import retrofit2.Response
 
-class TmdbApiHelperImpl @Inject constructor(private val tmdbApi: TmdbApi) : 
-    BaseRepository(), TmdbApiHelper {
+class TmdbApiHelperImpl @Inject constructor(private val tmdbApi: TmdbApi) : TmdbApiHelper {
     
     override suspend fun searchMulti(
         apiKey: String,
         query: String,
         page: Int
-    ): NetworkResponse<TmdbSearchResponse> {
-        return safeApiCall { tmdbApi.searchMulti(apiKey, query, page) }
+    ): Response<TmdbSearchResponse> {
+        return tmdbApi.searchMulti(apiKey, query, page)
     }
     
     override suspend fun searchMovies(
@@ -23,8 +21,8 @@ class TmdbApiHelperImpl @Inject constructor(private val tmdbApi: TmdbApi) :
         query: String,
         year: Int?,
         page: Int
-    ): NetworkResponse<TmdbSearchResponse> {
-        return safeApiCall { tmdbApi.searchMovies(apiKey, query, year, page) }
+    ): Response<TmdbSearchResponse> {
+        return tmdbApi.searchMovies(apiKey, query, year, page)
     }
     
     override suspend fun searchTv(
@@ -32,21 +30,21 @@ class TmdbApiHelperImpl @Inject constructor(private val tmdbApi: TmdbApi) :
         query: String,
         year: Int?,
         page: Int
-    ): NetworkResponse<TmdbSearchResponse> {
-        return safeApiCall { tmdbApi.searchTv(apiKey, query, year, page) }
+    ): Response<TmdbSearchResponse> {
+        return tmdbApi.searchTv(apiKey, query, year, page)
     }
     
     override suspend fun getMovieDetails(
         movieId: Int,
         apiKey: String
-    ): NetworkResponse<TmdbMovieDetails> {
-        return safeApiCall { tmdbApi.getMovieDetails(movieId, apiKey) }
+    ): Response<TmdbMovieDetails> {
+        return tmdbApi.getMovieDetails(movieId, apiKey)
     }
     
     override suspend fun getTvDetails(
         tvId: Int,
         apiKey: String
-    ): NetworkResponse<TmdbTvDetails> {
-        return safeApiCall { tmdbApi.getTvDetails(tvId, apiKey) }
+    ): Response<TmdbTvDetails> {
+        return tmdbApi.getTvDetails(tvId, apiKey)
     }
 }
