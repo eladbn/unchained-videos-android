@@ -34,6 +34,7 @@ You can take a look at the project [here](https://github.com/LivingWithHippos/un
 - [x] containers support
 - [x] user info
 - [x] themes
+- [x] **🎬 TMDB Integration** - **NEW!** Movie and TV show information with posters, ratings, and descriptions!
 
 ### Screenshots :iphone:
 
@@ -41,6 +42,26 @@ You can take a look at the project [here](https://github.com/LivingWithHippos/un
 | ------------- | ------------- | ------------- |------------- |------------- |
 | <img width="150" src="/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png?raw=true" alt="User Screen"> | <img width="150" src="/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png?raw=true" alt="List of downloads"> | <img width="150" src="/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png?raw=true" alt="Download details screen">  | <img width="150" src="/fastlane/metadata/android/en-US/images/phoneScreenshots/4.png?raw=true" alt="New download screen">  | <img width="150" src="/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png?raw=true" alt="Search screen">  |
 
+### 🎬 **TMDB Integration - Enhanced Movie & TV Experience!** :star2:
+
+**Transform your torrent browsing with rich media information!** This enhanced version now includes seamless integration with [The Movie Database (TMDB)](https://www.themoviedb.org/) to provide:
+
+- **🖼️ Movie & TV Show Posters** - Visual identification at a glance
+- **⭐ Ratings & Reviews** - TMDB community ratings and scores  
+- **📝 Plot Summaries** - Detailed descriptions and overviews
+- **🗓️ Release Information** - Years, seasons, and episode details
+- **🎭 Genre & Metadata** - Complete movie and TV show information
+
+**✨ How it works:**
+1. Search for torrents as usual using the built-in search plugins
+2. Tap on any movie or TV show result
+3. **Automatically see rich TMDB information** with poster, rating, and description!
+4. The app intelligently parses torrent names to match with TMDB content
+
+**📝 Note:** You'll need a free TMDB account and API key (quick 2-minute setup):
+1. Create a free account at [themoviedb.org](https://www.themoviedb.org/signup)
+2. Request an API key at [TMDB API Settings](https://www.themoviedb.org/settings/api)
+3. Add your API key in Unchained Settings → Search → TMDB API Key
 
 ### Installation :calling:
 
@@ -62,6 +83,8 @@ A debug version is available, it reports automatically any crash information, it
 This app is written in Kotlin and uses the following architectures/patterns/libraries:
 
 MVVM architectural pattern, Dagger-Hilt for dependency injection, Data Binding for managing ui-data relations, Navigation, Moshi, Retrofit, OkHTTP, Room, Coroutines, Flow, Livedata, Coil
+
+**Enhanced with TMDB Integration:** Retrofit API client for TMDB, intelligent torrent name parsing, repository pattern for data management, and Material Design 3 UI components for rich media display.
 
 The app is available in English, Italian, Spanish and French, ~~you can contribute to those or add a new language [here](https://localization.professiona.li/engage/unchained-for-android/) (much appreciated!)~~ (the service is currently down, you can still contribute by forking the project and adding the strings to the `strings.xml` file in the `values-xx` folders)
 
@@ -104,6 +127,14 @@ TO5D7VGONQRZR7P52EF2C3RJWLYNDA3E53F6SO3XCEGUHMSS3EH3D3TG6I
 <br>
 LWeoBVVmaYAiZ3oGaLAV9sV2dvY62XxdCF
 </details>
+
+### Fork & Enhancement Credits :sparkles:
+
+**🎬 TMDB Integration Enhancement**
+This enhanced fork includes TMDB (The Movie Database) integration developed to provide rich movie and TV show information for torrent search results. This feature seamlessly integrates with the existing search functionality to display posters, ratings, and plot summaries.
+
+**Original Project & Developer**
+This project is based on the excellent work by [LivingWithHippos](https://github.com/LivingWithHippos) on the original [Unchained for Android](https://github.com/LivingWithHippos/unchained-android) project. All core functionality, architecture, and design patterns come from the original implementation. Huge thanks to the original developer for creating such a solid foundation! 🙏
 
 ### Credits :crown:
 
